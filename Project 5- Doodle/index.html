@@ -1,0 +1,1026 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Minimal Collage Doodle — Export Friendly</title>
+
+<!-- Google font -->
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  /* Button hover effect */
+  button, .btn, .ghost {
+    transition: box-shadow 0.18s, background 0.18s, color 0.18s, border 0.18s;
+  }
+  button:hover, .btn:hover, .ghost:hover {
+    box-shadow: 0 2px 12px rgba(122,108,255,0.13), 0 0 0 2px var(--accent);
+    background: linear-gradient(90deg, var(--soft), #f3f6ff 80%);
+    color: var(--accent);
+    border-color: var(--accent) !important;
+  }
+
+  /* Uploader traceable border */
+  .uploader-trace {
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    pointer-events: none;
+    border: 2.5px dashed #7a6cff;
+    opacity: 0.18;
+    z-index: 1;
+  }
+  .uploader { position: relative; z-index: 2; }
+
+  /* Larger heading for Collage Doodle */
+  .title {
+    font-size: 2.1rem !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.5px;
+  }
+
+  /* Instructions area */
+  .instructions {
+    background: var(--soft);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    color: var(--muted);
+    font-size: 0.98rem;
+  }
+  :root{
+    --bg-gradient: linear-gradient(135deg, #f3f6ff 0%, #fffafb 100%);
+    --glass: rgba(255,255,255,0.6);
+    --card-bg: rgba(255,255,255,0.72);
+    --muted: #6b6f85;
+    --accent: #7a6cff;
+    --shadow: 0 6px 30px rgba(32,35,50,0.06);
+    --glass-border: rgba(255,255,255,0.6);
+    --text: #121226;
+    --control-bg: rgba(250,250,255,0.8);
+    --soft: #e9ecff;
+  }
+
+  body.dark {
+    --bg-gradient: linear-gradient(135deg, #0f1530 0%, #0b0e1a 100%);
+    --glass: rgba(22,24,41,0.76);
+    --card-bg: rgba(20,22,38,0.78);
+    --muted: #bfc7ff;
+    --accent: #9b8cff;
+    --shadow: 0 8px 40px rgba(0,0,0,0.6);
+    --glass-border: rgba(255,255,255,0.04);
+    --text: #eef0ff;
+    --control-bg: rgba(19,21,35,0.6);
+    --soft: rgba(255,255,255,0.02);
+  }
+
+  html,body{height:100%;margin:0;font-family:"Montserrat",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+  body{
+    background: var(--bg-gradient);
+    color:var(--text);
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:36px 20px;
+    transition: background .45s ease, color .25s ease;
+  }
+
+  /* subtle glitter overlay (non-distracting) */
+  .glitter {
+    pointer-events:none;
+    position:fixed; inset:0; z-index:0;
+    background-image:
+      radial-gradient(circle at 10% 20%, rgba(255,255,255,0.06) 0 1px, transparent 1px),
+      radial-gradient(circle at 80% 70%, rgba(255,255,255,0.05) 0 1px, transparent 1px),
+      radial-gradient(circle at 30% 80%, rgba(255,255,255,0.04) 0 1px, transparent 1px);
+    background-size: 12px 12px, 14px 14px, 10px 10px;
+    animation: drift 14s linear infinite;
+    mix-blend-mode: overlay;
+    opacity:.9;
+    filter: blur(.2px) saturate(.9);
+  }
+  @keyframes drift{
+    0%{transform:translateY(0) translateX(0) scale(1);}
+    50%{transform:translateY(-12px) translateX(6px) scale(1.01);}
+    100%{transform:translateY(0) translateX(0) scale(1);}
+  }
+
+  /* layout */
+  .app {
+    width:100%;
+    max-width:1100px;
+    position:relative;
+    z-index:1;
+    display:grid;
+    grid-template-columns: 380px 1fr;
+    gap:24px;
+    align-items:start;
+  }
+
+  @media (max-width:980px){
+    .app{grid-template-columns: 1fr; padding-bottom:40px;}
+  }
+
+  /* left panel - controls */
+  .panel {
+    background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.52));
+    background-clip:padding-box;
+    border-radius:18px;
+    padding:20px;
+    box-shadow:var(--shadow);
+    border:1px solid var(--glass-border);
+    backdrop-filter: blur(8px) saturate(120%);
+    transition: background .3s ease;
+  }
+  body.dark .panel{
+    background: linear-gradient(180deg, rgba(22,24,41,0.7), rgba(22,24,41,0.6));
+  }
+
+  .head {
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    margin-bottom:14px;
+  }
+  .title {
+    font-weight:700; font-size:1.18rem; letter-spacing:.2px;
+  }
+  .subtitle { font-size:.86rem; color:var(--muted); margin-top:6px; }
+
+  .uploader {
+    margin-top:12px;
+    padding:12px;
+    border-radius:12px;
+    border:2px dashed var(--soft);
+    display:flex; gap:12px; align-items:center;
+    background:var(--control-bg);
+    cursor:pointer;
+  }
+  .uploader input{display:none;}
+  .uploader .hint { font-size:.92rem; color:var(--muted); flex:1; }
+  .uploader .small {font-size:.78rem;color:var(--muted);}
+
+  .thumbs {
+    display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;
+    max-height:160px; overflow:auto; padding-right:6px;
+  }
+  .thumbs img{
+    width:72px; height:72px; object-fit:cover; border-radius:12px;
+    border:3px solid rgba(255,255,255,0.6);
+    box-shadow: 0 6px 18px rgba(16,20,40,0.06);
+  }
+
+  .controls { margin-top:16px; display:flex; flex-direction:column; gap:12px; }
+  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  label.small { font-size:.88rem; color:var(--muted); min-width:82px; }
+  select, button, input[type="range"], .size-list {
+    border-radius:10px; border: none; padding:9px 12px;
+    background:var(--card-bg); color:var(--text); font-weight:600;
+    box-shadow: 0 3px 12px rgba(30,35,60,0.04);
+    outline:none; min-height:42px;
+  }
+  select { font-weight:500; }
+  .btn { cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
+  .primary {
+    background: linear-gradient(90deg,var(--accent), #8fb0ff);
+    color:white; padding:10px 14px; border-radius:12px;
+    box-shadow: 0 8px 28px rgba(75,60,200,0.14); font-weight:700;
+  }
+  .ghost { background:transparent; border:1px solid var(--glass-border); color:var(--muted); padding:9px 12px; }
+
+  .size-list { display:flex; gap:8px; flex-wrap:wrap; padding:6px; }
+  .size-list button { min-width:0; padding:8px 10px; font-size:.86rem; }
+
+  .small-note {font-size:.82rem;color:var(--muted); margin-top:6px;}
+
+  /* right panel - canvas preview */
+  .preview-card {
+    border-radius:18px; padding:18px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.44));
+    border:1px solid var(--glass-border); box-shadow:var(--shadow);
+    backdrop-filter: blur(8px) saturate(120%);
+    display:flex; flex-direction:column; gap:12px;
+  }
+  body.dark .preview-card{
+    background: linear-gradient(180deg, rgba(19,21,35,0.72), rgba(23,25,44,0.6));
+  }
+
+  .canvas-wrap {
+    width:100%; display:flex; justify-content:center; align-items:center; padding:8px;
+  }
+
+  /* canvas styling (responsive) */
+  canvas#collage {
+    width:100%;
+    max-width:900px;
+    height:auto;
+    border-radius:18px;
+    box-shadow: 0 18px 54px rgba(20,24,60,0.12);
+    background:transparent;
+    border:1px solid rgba(255,255,255,0.6);
+  }
+
+  /* small footer */
+  .footer { font-size:.85rem; color:var(--muted); margin-top:6px; text-align:center; }
+
+  /* simple clean toggle */
+  .switch {
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--control-bg); padding:6px;border-radius:12px;
+  }
+  .switch button { background:transparent; border:none; padding:8px; cursor:pointer; border-radius:10px; }
+  .switch .active { box-shadow: inset 0 -2px 0 rgba(0,0,0,0.06); font-weight:700; }
+
+  /* accessibility focus */
+  button:focus, select:focus, input:focus { box-shadow: 0 0 0 3px rgba(122,108,255,0.12); outline:none; }
+
+  /* tiny helpers */
+  .muted { color:var(--muted); font-size:.90rem; }
+  .stack { display:flex; flex-direction:column; gap:6px; }
+</style>
+</head>
+<body>
+  <div class="glitter" aria-hidden="true"></div>
+
+  <div class="app" role="application" aria-label="Collage doodle generator">
+    <!-- LEFT: Controls -->
+    <aside class="panel" aria-labelledby="controlsTitle">
+      <div class="head">
+        <div>
+          <div id="controlsTitle" class="title">Collage Doodle</div>
+          <div class="subtitle">Minimal • export-ready • light & dark</div>
+        </div>
+        <button id="themeToggle" class="btn ghost" aria-label="Toggle light/dark mode" title="Toggle theme">
+          <span id="themeIcon" aria-hidden="true">🌙</span>
+        </button>
+      </div>
+
+      <!-- Upload -->
+      <label class="uploader" id="uploader" for="fileInput" aria-label="Upload images (up to 9)">
+        <input id="fileInput" type="file" accept="image/*" multiple>
+        <div class="stack">
+          <div class="hint">Drag & drop or click to add up to <strong>9</strong> photos</div>
+          <div class="small small-note">Images will be cropped to fill their frames (no blank edges).</div>
+        </div>
+        <div class="uploader-trace"></div>
+      </label>
+
+      <div class="thumbs" id="thumbs" aria-live="polite"></div>
+
+      <div class="controls">
+        <div class="row">
+          <label class="small" for="layoutSelect">Layout</label>
+          <select id="layoutSelect" aria-label="Choose layout">
+            <option value="random">Polaroid (Random)</option>
+            <option value="grid">Grid (tight)</option>
+            <option value="circle">Circle ring</option>
+            <option value="mosaic">Mosaic (cover)</option>
+          </select>
+          <label class="small" for="frameRadius">Frame</label>
+          <select id="frameRadius" aria-label="Frame style">
+            <option value="rounded">Rounded (soft)</option>
+            <option value="polaroid">Polaroid (thick bottom)</option>
+            <option value="clean">Clean (tiny white border)</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label class="small">Image Filter</label>
+          <select id="filterSelect" aria-label="Image filter">
+            <option value="none">None</option>
+            <option value="grayscale(1)">Grayscale</option>
+            <option value="sepia(0.6)">Sepia</option>
+            <option value="contrast(1.08) saturate(1.05)">Warm</option>
+          </select>
+        </div>
+
+        <div class="row" style="margin-top:6px;">
+          <button id="shuffleBtn" class="ghost">Shuffle</button>
+          <button id="clearBtn" class="ghost">Clear Layout</button>
+        </div>
+
+        <div class="row">
+          <label class="small">Export size</label>
+          <div class="size-list" id="sizeList">
+            <button data-w="1080" data-h="1080" class="ghost">Instagram 1080×1080</button>
+            <button data-w="1200" data-h="630" class="ghost">Facebook 1200×630</button>
+            <button data-w="1080" data-h="1920" class="ghost">Story 1080×1920</button>
+            <button data-w="1600" data-h="900" class="ghost">Twitter 1600×900</button>
+            <button data-w="1000" data-h="1500" class="ghost">Pinterest 1000×1500</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <label class="small">Format</label>
+          <div style="display:flex;gap:8px;">
+            <button id="exportPNG" class="btn primary">Export PNG</button>
+            <button id="exportJPG" class="btn" style="background:linear-gradient(90deg,#ffbfa6,#ffd6f0);font-weight:700;">Export JPG</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="instructions" style="margin-top:18px;">
+        <div class="small-note"><strong>JPG export</strong> will add a soft gradient background suited to the collage (no transparent areas).</div>
+        <div class="small-note">Try different layouts — images are 'cover' cropped to avoid blank space.</div>
+        <div class="small-note">Tip: For JPG choose 'Export JPG' — it blends a gentle gradient behind the collage.</div>
+      </div>
+      <div class="footer">&copy; 2025 Carnage Sentinels. All rights reserved.</div>
+    </aside>
+
+    <!-- RIGHT: Preview -->
+    <main class="preview-card" aria-live="polite">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-weight:900;font-size:2.1rem;letter-spacing:0.5px;">Collage Doodle</div>
+        <div class="muted">Use export buttons to download</div>
+      </div>
+
+      <div class="canvas-wrap" role="img" aria-label="Collage preview">
+        <!-- Canvas will be resized on export but preview is 900x900 (or responsive) -->
+        <canvas id="collage" width="1080" height="1080" aria-hidden="false"></canvas>
+      </div>
+      <div class="muted" style="text-align:center;">Tip: For JPG choose 'Export JPG' — it blends a gentle gradient behind the collage.</div>
+    </main>
+  </div>
+
+<script>
+/* ====== Utilities ====== */
+const el = id=>document.getElementById(id);
+const qs = s=>document.querySelector(s);
+
+/* Theme toggle (single button) */
+const themeToggle = el('themeToggle');
+const themeIcon = el('themeIcon');
+function applyTheme(theme){
+  if(theme==='dark'){
+    document.body.classList.add('dark');
+    themeIcon.textContent = '☀️';
+    themeToggle.setAttribute('aria-label','Switch to light mode');
+  } else {
+    document.body.classList.remove('dark');
+    themeIcon.textContent = '🌙';
+    themeToggle.setAttribute('aria-label','Switch to dark mode');
+  }
+  localStorage.setItem('collage_theme', theme);
+}
+themeToggle.onclick = ()=>{
+  const isDark = document.body.classList.contains('dark');
+  applyTheme(isDark ? 'light' : 'dark');
+};
+(function(){
+  const saved = localStorage.getItem('collage_theme');
+  const prefers = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  applyTheme(saved || prefers);
+})();
+
+/* ====== App state ====== */
+const MAX_IMAGES = 9;
+let images = []; // {img:Image, src}
+let layout='random', frameStyle='rounded', filterVal='none';
+let seed = Math.random();
+
+/* DOM */
+const fileInput = el('fileInput'), uploader = el('uploader'), thumbs = el('thumbs');
+const layoutSelect = el('layoutSelect'), frameRadius = el('frameRadius'), filterSelect = el('filterSelect');
+const canvas = el('collage'); const ctx = canvas.getContext('2d');
+const exportPNG = el('exportPNG'), exportJPG = el('exportJPG');
+const shuffleBtn = el('shuffleBtn'), clearBtn = el('clearBtn');
+const sizeList = el('sizeList');
+
+
+// Only drag and drop handlers, let label/input handle click
+uploader.addEventListener('dragover', (e)=>{ e.preventDefault(); uploader.style.borderColor='rgba(122,108,255,0.28)'; });
+uploader.addEventListener('dragleave', ()=>{ uploader.style.borderColor=''; });
+uploader.addEventListener('drop', (e)=>{ e.preventDefault(); uploader.style.borderColor=''; handleFiles(e.dataTransfer.files); });
+
+fileInput.addEventListener('change', ()=>handleFiles(fileInput.files));
+
+function handleFiles(list){
+  const files = Array.from(list).filter(f=>f.type && f.type.startsWith('image/')).slice(0,MAX_IMAGES);
+  if(files.length===0) return;
+  images = []; thumbs.innerHTML='';
+  let loaded = 0;
+  files.forEach(file=>{
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      const img = new Image();
+      img.onload = ()=> {
+        images.push({img, src:ev.target.result});
+        const t = document.createElement('img'); t.src = ev.target.result;
+        t.alt = file.name || 'photo';
+        thumbs.appendChild(t);
+        loaded++;
+        if(loaded === files.length) { renderPreview(); }
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/* controls */
+layoutSelect.onchange = e => { layout = e.target.value; renderPreview(); };
+frameRadius.onchange = e => { frameStyle = e.target.value; renderPreview(); };
+filterSelect.onchange = e => { filterVal = e.target.value; renderPreview(); };
+
+shuffleBtn.onclick = ()=> { seed = Math.random(); images = shuffleArray(images); updateThumbs(); renderPreview(); };
+clearBtn.onclick = ()=>{ images = []; thumbs.innerHTML = ''; renderPreview(); };
+
+/* size buttons + live preview resize */
+const canvasWrap = document.getElementById('canvasWrap');
+sizeList.querySelectorAll('button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    sizeList.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    // highlight visually via border
+    sizeList.querySelectorAll('button').forEach(b=>b.style.border = '');
+    btn.style.border = '2px solid rgba(122,108,255,0.12)';
+    // Live resize preview panel
+    const w = parseInt(btn.dataset.w), h = parseInt(btn.dataset.h);
+    if(canvasWrap) {
+      canvasWrap.style.maxWidth = w + 'px';
+      canvasWrap.style.maxHeight = h + 'px';
+    }
+    canvas.style.maxWidth = w + 'px';
+    canvas.style.maxHeight = h + 'px';
+    renderPreview();
+  });
+});
+// default select first size
+const firstSizeBtn = sizeList.querySelector('button');
+if(firstSizeBtn) firstSizeBtn.click();
+
+/* shuffle helper */
+function shuffleArray(a){
+  const copy = a.slice();
+  for(let i=copy.length-1;i>0;i--){
+    const j = Math.floor(Math.random()* (i+1) );
+    [copy[i],copy[j]] = [copy[j],copy[i]];
+  }
+  return copy;
+}
+
+/* ====== Rendering logic ====== */
+/* The idea: We draw a background gradient, then place image frames that always 'cover' their cell (no blank edges).
+   For 'mosaic' layout we pack images to cover canvas with different sizes.
+*/
+
+function clearCanvas(w=canvas.width, h=canvas.height){
+  ctx.clearRect(0,0,w,h);
+  // subtle transparent base so jpg export can draw gradient separately
+}
+
+function drawBackgroundGradient(w,h,forJpg=false, forceOpaque=false){
+  // light mode pastel gradient, dark mode deep blues/purples for dark
+  const isDark = document.body.classList.contains('dark');
+  const g = ctx.createLinearGradient(0,0,w,h);
+  if(forJpg || forceOpaque){
+    if(isDark){
+      g.addColorStop(0, '#0f1530'); g.addColorStop(1,'#1b2946');
+    } else {
+      g.addColorStop(0, '#f7fbff'); g.addColorStop(1,'#eef4ff');
+    }
+  } else {
+    // transparent background for PNG preview (keep subtle)
+    if(isDark){
+      g.addColorStop(0, 'rgba(15,21,48,0.40)'); g.addColorStop(1,'rgba(27,41,70,0.24)');
+    } else {
+      g.addColorStop(0, 'rgba(255,255,255,0.28)'); g.addColorStop(1,'rgba(240,246,255,0.18)');
+    }
+  }
+  ctx.globalAlpha = 1.0;
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,w,h);
+  ctx.globalAlpha = 1.0;
+}
+
+function renderPreview(){
+  // preview uses 1080x1080 logical canvas for crispness; canvas element will be displayed responsively.
+  const previewSize = 1080;
+  canvas.width = previewSize; canvas.height = previewSize;
+  renderCollage({w:previewSize,h:previewSize, forJpg:false});
+}
+
+function renderCollage({w,h, forJpg, forceOpaque} = {w:1080,h:1080, forJpg:false, forceOpaque:false}){
+  // ensure crisp
+  canvas.width = w; canvas.height = h;
+  ctx.save();
+  // background
+  drawBackgroundGradient(w,h, forJpg, forceOpaque);
+  if(images.length === 0){
+    ctx.fillStyle = 'rgba(0,0,0,0)';
+    ctx.restore();
+    return;
+  }
+
+  // seedable pseudo-rng
+  const rnd = seededRandom(seed);
+  // decide layout placement boxes
+  let boxes = computeBoxes(layout, images.length, w, h, rnd);
+
+  // draw frames (improved border)
+  boxes.forEach((box, i) => {
+    const imgObj = images[i % images.length];
+    if(!imgObj) return;
+    // compute image cover drawing
+    ctx.globalAlpha = 1.0;
+    drawImageCover(ctx, imgObj.img, box.x, box.y, box.w, box.h, filterVal);
+    ctx.globalAlpha = 1.0;
+
+    // frame style
+    if(frameStyle === 'polaroid'){
+      // polaroid-like: white frame thicker bottom
+      const pad = Math.max(10, Math.round(Math.min(w,h)*0.01));
+      const br = Math.round(Math.min(box.w, box.h) * 0.06);
+      ctx.save();
+      ctx.beginPath();
+      roundedRectPath(ctx, box.x-pad, box.y-pad, box.w+pad*2, box.h+pad*2 + pad*1.6, br);
+      ctx.fillStyle = forceOpaque || forJpg ? '#fff' : 'rgba(255,255,255,0.96)';
+      ctx.globalAlpha = 1.0;
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+      ctx.stroke();
+      ctx.restore();
+      ctx.save();
+      ctx.shadowColor = 'rgba(10,12,20,0.06)';
+      ctx.shadowBlur = 18; ctx.shadowOffsetY = 8;
+      ctx.restore();
+    } else if(frameStyle === 'clean') {
+      ctx.save();
+      roundedRectPath(ctx, box.x-4, box.y-4, box.w+8, box.h+8, Math.round(Math.min(box.w,box.h)*0.03));
+      ctx.lineWidth = 4; ctx.strokeStyle = forceOpaque || forJpg ? '#fff' : 'rgba(255,255,255,0.78)';
+      ctx.globalAlpha = 1.0;
+      ctx.stroke();
+      ctx.restore();
+    } else {
+      ctx.save();
+      roundedRectPath(ctx, box.x-8, box.y-8, box.w+16, box.h+16, Math.round(Math.min(box.w,box.h)*0.06));
+      ctx.fillStyle = forceOpaque || forJpg ? '#fff' : 'rgba(255,255,255,0.7)';
+      ctx.globalAlpha = 1.0;
+      ctx.globalCompositeOperation = 'destination-over';
+      ctx.fill();
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.restore();
+    }
+
+    // colored subtle doodle stroke around image
+    ctx.save();
+    ctx.lineWidth = Math.max(3, Math.min(box.w,box.h) * 0.02);
+    const pal = ['#a7cbfb','#f5cbf8','#ffdfb8'];
+    ctx.strokeStyle = pal[i % pal.length];
+    ctx.globalAlpha = 1.0;
+    roundedRectPath(ctx, box.x-2, box.y-2, box.w+4, box.h+4, Math.round(Math.min(box.w,box.h)*0.04));
+    ctx.stroke();
+    ctx.restore();
+
+    // small decorative doodles near each box
+    if(i % 3 === 0) drawTinyStar(ctx, box.x + box.w*0.85, box.y - box.h*0.06, Math.min(w,h)*0.012 );
+    if(i % 3 === 1) drawTinySquiggle(ctx, box.x - box.w*0.02, box.y + box.h*0.02, Math.min(w,h)*0.06);
+    if(i % 3 === 2) drawTinyHeart(ctx, box.x + box.w*0.05, box.y + box.h*0.02, Math.min(w,h)*0.018);
+  });
+
+  ctx.restore();
+}
+
+/* ====== Drawing primitives ====== */
+
+function roundedRectPath(ctx,x,y,w,h,r){
+  const rad = typeof r === 'number' ? r : 12;
+  ctx.beginPath();
+  ctx.moveTo(x+rad,y);
+  ctx.arcTo(x+w,y, x+w,y+h, rad);
+  ctx.arcTo(x+w,y+h, x,y+h, rad);
+  ctx.arcTo(x,y+h, x,y, rad);
+  ctx.arcTo(x,y, x+w,y, rad);
+  ctx.closePath();
+}
+
+/* draw image with CSS-like 'cover' behavior */
+function drawImageCover(ctx, img, x,y,w,h, filterStr='none'){
+  // compute scale to cover the box
+  const iw = img.width, ih = img.height;
+  const boxRatio = w/h, imgRatio = iw/ih;
+  let sx=0, sy=0, sw=iw, sh=ih;
+  if(imgRatio > boxRatio){
+    // image is wider -> crop left/right
+    sh = ih;
+    sw = ih * boxRatio;
+    sx = (iw - sw)/2;
+  } else {
+    // image taller -> crop top/bottom
+    sw = iw;
+    sh = iw / boxRatio;
+    sy = (ih - sh)/2;
+  }
+
+  // draw frame background (soft)
+  ctx.save();
+  // image clip
+  roundedRectPath(ctx, x, y, w, h, Math.round(Math.min(w,h)*0.05));
+  ctx.clip();
+
+  // apply CSS filter if requested (limited support via ctx.filter)
+  try { ctx.filter = filterStr || 'none'; } catch(e){ ctx.filter = 'none'; }
+
+  // draw image covering box
+  ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+
+  // restore filter and clip
+  ctx.filter = 'none';
+  ctx.restore();
+}
+
+/* small decorative doodles */
+function drawTinyStar(ctx, cx, cy, r){
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.rotate( (Math.random()-0.5) * 0.6 );
+  ctx.beginPath();
+  for(let i=0;i<5;i++){
+    ctx.lineTo(Math.cos((18+i*72)*Math.PI/180)*r, Math.sin((18+i*72)*Math.PI/180)*r);
+    ctx.lineTo(Math.cos((54+i*72)*Math.PI/180)*(r*0.45), Math.sin((54+i*72)*Math.PI/180)*(r*0.45));
+  }
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(255,234,150,0.95)';
+  ctx.fill();
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(255,200,64,0.9)';
+  ctx.stroke();
+  ctx.restore();
+}
+function drawTinySquiggle(ctx, x,y, r){
+  ctx.save(); ctx.translate(x,y);
+  ctx.beginPath(); ctx.moveTo(-r*0.6,0);
+  for(let t=0;t<1;t+=0.14){
+    const a = t*Math.PI*2;
+    ctx.lineTo(Math.cos(a)*r*Math.sin(t*5+1.2), Math.sin(a)*r*0.4);
+  }
+  ctx.strokeStyle = 'rgba(246,185,235,0.95)';
+  ctx.lineWidth = 2.4; ctx.stroke(); ctx.restore();
+}
+function drawTinyHeart(ctx,x,y,r){
+  ctx.save(); ctx.translate(x,y);
+  ctx.beginPath(); ctx.moveTo(0, r*0.6);
+  ctx.bezierCurveTo(r, -r*0.2, r*1.6, r*0.8, 0, r*1.6);
+  ctx.bezierCurveTo(-r*1.6, r*0.8, -r, -r*0.2, 0, r*0.6);
+  ctx.fillStyle = 'rgba(255,180,200,0.9)'; ctx.fill();
+  ctx.restore();
+}
+
+/* compute boxes to place images - return array of {x,y,w,h} */
+function computeBoxes(layoutType, n, W, H, rnd){
+  const boxes = [];
+  if(n === 1){
+    boxes.push({x: Math.round(W*0.06), y: Math.round(H*0.08), w: Math.round(W*0.88), h: Math.round(H*0.84)});
+    return boxes;
+  }
+
+  if(layoutType === 'grid'){
+    // tightly-packed grid
+    const cols = Math.ceil(Math.sqrt(n));
+    const rows = Math.ceil(n/cols);
+    const pad = Math.round(Math.min(W,H)*0.02);
+    const cellW = Math.floor((W - pad*(cols+1))/cols);
+    const cellH = Math.floor((H - pad*(rows+1))/rows);
+    let i=0;
+    for(let r=0;r<rows;r++){
+      for(let c=0;c<cols;c++){
+        if(i>=n) break;
+        const x = pad + c*(cellW+pad);
+        const y = pad + r*(cellH+pad);
+        boxes.push({x,y,w:cellW,h:cellH});
+        i++;
+      }
+    }
+    return boxes;
+  }
+
+  if(layoutType === 'circle'){
+    const centerX = W/2, centerY = H/2;
+    const radius = Math.min(W,H)*0.34;
+    const item = Math.min(W,H)*0.22;
+    for(let i=0;i<n;i++){
+      const a = (i/n)*Math.PI*2 + (rnd()*Math.PI*0.6 - Math.PI*0.3);
+      const x = centerX + Math.cos(a)*radius - item/2;
+      const y = centerY + Math.sin(a)*radius - item/2;
+      boxes.push({x,y,w:item,h:item});
+    }
+    return boxes;
+  }
+
+  if(layoutType === 'mosaic'){
+    // simple mosaic: alternate large and small tiles to cover canvas
+    const pad = Math.round(Math.min(W,H)*0.015);
+    let positions = [
+      {x:pad,y:pad,w: Math.round(W*0.58)-pad*2, h: Math.round(H*0.58)-pad*2},
+      {x: Math.round(W*0.58)+pad, y:pad, w: Math.round(W*0.42)-pad*2, h: Math.round(H*0.29)-pad*2},
+      {x: Math.round(W*0.58)+pad, y: Math.round(H*0.29)+pad, w: Math.round(W*0.42)-pad*2, h: Math.round(H*0.29)-pad*2},
+      {x:pad, y: Math.round(H*0.58)+pad, w: Math.round(W*0.29)-pad*2, h: Math.round(H*0.42)-pad*2},
+      {x: Math.round(W*0.29)+pad, y: Math.round(H*0.58)+pad, w: Math.round(W*0.71)-pad*2, h: Math.round(H*0.42)-pad*2}
+    ];
+    // pick as many positions as needed using rnd
+    for(let i=0;i<n;i++){
+      const pos = positions[i % positions.length];
+      // jitter a little
+      const jitter = Math.round(Math.min(W,H)*0.02);
+      boxes.push({x:pos.x + Math.round((rnd()-0.5)*jitter), y:pos.y + Math.round((rnd()-0.5)*jitter), w:pos.w, h:pos.h});
+    }
+    return boxes;
+  }
+
+  // default 'random' polaroid-like scatter but ensure coverage (no big margins)
+  const margin = Math.round(Math.min(W,H)*0.06);
+  const areaW = W - margin*2, areaH = H - margin*2;
+  for(let i=0;i<n;i++){
+    const scale = 0.22 + rnd()*0.28; // size fraction
+    const wbox = Math.round(W * scale);
+    const hbox = Math.round(H * scale);
+    const x = Math.round(margin + rnd()*(areaW - wbox));
+    const y = Math.round(margin + rnd()*(areaH - hbox));
+    boxes.push({x,y,w:wbox,h:hbox});
+  }
+  // if we found any big gaps (rare) - we won't attempt complex packing here, but boxes fill most of canvas.
+  return boxes;
+}
+
+/* seeded RNG factory */
+function seededRandom(seedVal){
+  let s = seedVal * 100000;
+  return function(){
+    s = (s * 9301 + 49297) % 233280;
+    return s / 233280;
+  };
+}
+
+/* ====== Export logic ====== */
+
+function performExport({w,h,format='png'}){
+  // Make a temporary canvas and render at requested size for high quality
+  const tmp = document.createElement('canvas');
+  tmp.width = w; tmp.height = h;
+  const tctx = tmp.getContext('2d');
+
+  // Use the same logic as renderCollage, but force all drawing to be opaque
+  // Temporarily swap ctx
+  const oldCtx = ctx;
+  window.ctx = tctx;
+  renderCollage({w,h, forJpg: (format==='jpg'||format==='jpeg'), forceOpaque: true});
+  window.ctx = oldCtx;
+
+  // produce dataURL
+  let mime = format === 'jpg' || format === 'jpeg' ? 'image/jpeg' : 'image/png';
+  const quality = format === 'jpg' ? 0.92 : 1.0;
+  const dataURL = tmp.toDataURL(mime, quality);
+
+  // trigger download
+  const a = document.createElement('a');
+  const ext = format === 'jpg' ? 'jpg' : 'png';
+  a.download = `collage-${w}x${h}.${ext}`;
+  a.href = dataURL;
+  a.click();
+}
+
+/* Helper to temporarily swap global ctx used by renderCollage helpers */
+function swapCtx(newCtx){
+  const old = ctxGlobal.ctx;
+  ctxGlobal.ctx = newCtx;
+  return old;
+}
+
+/* render collage using provided context */
+const ctxGlobal = { ctx }; // wrapper for swapping
+function renderCollageAtContext(targetCtx, w, h, forJpg){
+  // Replace ctx used by primitives
+  const saved = ctxGlobal.ctx;
+  ctxGlobal.ctx = targetCtx;
+  // rebind local ctx reference for drawing primitives
+  // We'll temporarily override the functions' ctx usage by setting a local alias
+  // For brevity, we'll copy minimal necessary code here to avoid modifying many functions
+  // Background
+  (function drawBG(){
+    const isDark = document.body.classList.contains('dark');
+    const g = targetCtx.createLinearGradient(0,0,w,h);
+    if(forJpg){
+      if(isDark){ g.addColorStop(0,'#0f1530'); g.addColorStop(1,'#1b2946'); }
+      else { g.addColorStop(0,'#f7fbff'); g.addColorStop(1,'#eef4ff'); }
+    } else {
+      if(isDark){ g.addColorStop(0,'rgba(15,21,48,0.40)'); g.addColorStop(1,'rgba(27,41,70,0.24)'); }
+      else { g.addColorStop(0,'rgba(255,255,255,0.28)'); g.addColorStop(1,'rgba(240,246,255,0.18)'); }
+    }
+    targetCtx.fillStyle = g;
+    targetCtx.fillRect(0,0,w,h);
+  })();
+
+  if(images.length===0) { ctxGlobal.ctx = saved; return; }
+
+  // boxes
+  const rnd = seededRandom(seed);
+  const boxes = computeBoxes(layout, images.length, w, h, rnd);
+
+  boxes.forEach((box,i)=>{
+    const imgObj = images[i % images.length];
+    // Use local drawing to targetCtx
+    drawImageCoverOnCtx(targetCtx, imgObj.img, box.x, box.y, box.w, box.h, filterVal);
+
+    // frames & borders (simpler here)
+    targetCtx.save();
+    // soft outer fill for polaroid style
+    if(frameStyle === 'polaroid'){
+      roundedRectPathOnCtx(targetCtx, box.x-Math.round(Math.min(w,h)*0.01), box.y-Math.round(Math.min(w,h)*0.01), box.w+Math.round(Math.min(w,h)*0.02), box.h+Math.round(Math.min(w,h)*0.02 + Math.min(w,h)*0.015), Math.round(Math.min(box.w,box.h)*0.06));
+      targetCtx.fillStyle = 'rgba(255,255,255,0.98)';
+      targetCtx.fill();
+    } else if(frameStyle === 'clean'){
+      roundedRectPathOnCtx(targetCtx, box.x-6, box.y-6, box.w+12, box.h+12, Math.round(Math.min(box.w,box.h)*0.03));
+      targetCtx.lineWidth = 6;
+      targetCtx.strokeStyle = 'rgba(255,255,255,0.88)';
+      targetCtx.stroke();
+    } else {
+      roundedRectPathOnCtx(targetCtx, box.x-10, box.y-10, box.w+20, box.h+20, Math.round(Math.min(box.w,box.h)*0.06));
+      targetCtx.fillStyle = 'rgba(255,255,255,0.82)';
+      targetCtx.fill();
+    }
+    // outer decorative stroke
+    targetCtx.lineWidth = Math.max(3, Math.min(box.w,box.h) * 0.02);
+    const pal = ['#a7cbfb','#f5cbf8','#ffdfb8'];
+    targetCtx.strokeStyle = pal[i % pal.length];
+    roundedRectPathOnCtx(targetCtx, box.x-2, box.y-2, box.w+4, box.h+4, Math.round(Math.min(box.w,box.h)*0.04));
+    targetCtx.stroke();
+    targetCtx.restore();
+  });
+
+  ctxGlobal.ctx = saved;
+}
+
+/* helper variants for using provided ctx */
+function roundedRectPathOnCtx(cctx,x,y,w,h,r){
+  const rad = typeof r === 'number' ? r : 12;
+  cctx.beginPath();
+  cctx.moveTo(x+rad,y);
+  cctx.arcTo(x+w,y, x+w,y+h, rad);
+  cctx.arcTo(x+w,y+h, x,y+h, rad);
+  cctx.arcTo(x,y+h, x,y, rad);
+  cctx.arcTo(x,y, x+w,y, rad);
+  cctx.closePath();
+}
+function drawImageCoverOnCtx(cctx, img, x,y,w,h, filterStr='none'){
+  const iw = img.width, ih = img.height;
+  const boxRatio = w/h, imgRatio = iw/ih;
+  let sx=0, sy=0, sw=iw, sh=ih;
+  if(imgRatio > boxRatio){
+    sw = ih * boxRatio; sx = (iw - sw)/2;
+  } else {
+    sh = iw / boxRatio; sy = (ih - sh)/2;
+  }
+
+  cctx.save();
+  roundedRectPathOnCtx(cctx, x, y, w, h, Math.round(Math.min(w,h)*0.05));
+  cctx.clip();
+  try { cctx.filter = filterStr || 'none'; } catch(e){ cctx.filter = 'none'; }
+  cctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+  cctx.filter = 'none';
+  cctx.restore();
+}
+
+/* ====== Misc small helpers ====== */
+function updateThumbs(){
+  thumbs.innerHTML = '';
+  images.forEach(it => {
+    const im = document.createElement('img'); im.src = it.src; thumbs.appendChild(im);
+  });
+}
+
+/* ====== Export button events ====== */
+exportPNG.addEventListener('click', ()=>{
+  const sel = sizeList.querySelector('button.active') || sizeList.querySelector('button');
+  const w = parseInt(sel.dataset.w), h = parseInt(sel.dataset.h);
+  performExport({w,h,format:'png'});
+});
+
+exportJPG.addEventListener('click', ()=>{
+  const sel = sizeList.querySelector('button.active') || sizeList.querySelector('button');
+  const w = parseInt(sel.dataset.w), h = parseInt(sel.dataset.h);
+  performExport({w,h,format:'jpg'});
+});
+
+function performExport({w, h, format = 'png'}) {
+  // Create a new canvas for export
+  const exportCanvas = document.createElement('canvas');
+  exportCanvas.width = w;
+  exportCanvas.height = h;
+  const exportCtx = exportCanvas.getContext('2d');
+
+  // Draw background (opaque for both PNG and JPG)
+  const isDark = document.body.classList.contains('dark');
+  const grad = exportCtx.createLinearGradient(0, 0, w, h);
+  if (format === 'jpg' || format === 'jpeg') {
+    if (isDark) {
+      grad.addColorStop(0, '#0f1530'); grad.addColorStop(1, '#1b2946');
+    } else {
+      grad.addColorStop(0, '#f7fbff'); grad.addColorStop(1, '#eef4ff');
+    }
+  } else {
+    // PNG: use a subtle but opaque gradient
+    if (isDark) {
+      grad.addColorStop(0, '#181c2e'); grad.addColorStop(1, '#232a3e');
+    } else {
+      grad.addColorStop(0, '#f7fbff'); grad.addColorStop(1, '#eef4ff');
+    }
+  }
+  exportCtx.fillStyle = grad;
+  exportCtx.fillRect(0, 0, w, h);
+
+  // Compute layout
+  const n = images.length;
+  if (n === 0) return;
+  const rnd = seededRandom(seed);
+  const boxes = computeBoxes(layout, n, w, h, rnd);
+
+  // Draw each image and frame
+  boxes.forEach((box, i) => {
+    const imgObj = images[i % n];
+    if (!imgObj) return;
+    // Draw frame (always opaque)
+    if (frameStyle === 'polaroid') {
+      const pad = Math.max(10, Math.round(Math.min(w, h) * 0.01));
+      const br = Math.round(Math.min(box.w, box.h) * 0.06);
+      exportCtx.save();
+      exportCtx.beginPath();
+      roundedRectPath(exportCtx, box.x - pad, box.y - pad, box.w + pad * 2, box.h + pad * 2 + pad * 1.6, br);
+      exportCtx.fillStyle = '#fff';
+      exportCtx.fill();
+      exportCtx.lineWidth = 2;
+      exportCtx.strokeStyle = 'rgba(0,0,0,0.06)';
+      exportCtx.stroke();
+      exportCtx.restore();
+    } else if (frameStyle === 'clean') {
+      exportCtx.save();
+      roundedRectPath(exportCtx, box.x - 4, box.y - 4, box.w + 8, box.h + 8, Math.round(Math.min(box.w, box.h) * 0.03));
+      exportCtx.lineWidth = 4;
+      exportCtx.strokeStyle = '#fff';
+      exportCtx.stroke();
+      exportCtx.restore();
+    } else {
+      exportCtx.save();
+      roundedRectPath(exportCtx, box.x - 8, box.y - 8, box.w + 16, box.h + 16, Math.round(Math.min(box.w, box.h) * 0.06));
+      exportCtx.fillStyle = '#fff';
+      exportCtx.globalAlpha = 1.0;
+      exportCtx.globalCompositeOperation = 'destination-over';
+      exportCtx.fill();
+      exportCtx.globalCompositeOperation = 'source-over';
+      exportCtx.restore();
+    }
+
+    // Draw image (cover)
+    exportCtx.save();
+    roundedRectPath(exportCtx, box.x, box.y, box.w, box.h, Math.round(Math.min(box.w, box.h) * 0.05));
+    exportCtx.clip();
+    try { exportCtx.filter = filterVal || 'none'; } catch (e) { exportCtx.filter = 'none'; }
+    // Compute cover
+    const img = imgObj.img;
+    const iw = img.width, ih = img.height;
+    const boxRatio = box.w / box.h, imgRatio = iw / ih;
+    let sx = 0, sy = 0, sw = iw, sh = ih;
+    if (imgRatio > boxRatio) {
+      sh = ih;
+      sw = ih * boxRatio;
+      sx = (iw - sw) / 2;
+    } else {
+      sw = iw;
+      sh = iw / boxRatio;
+      sy = (ih - sh) / 2;
+    }
+    exportCtx.drawImage(img, sx, sy, sw, sh, box.x, box.y, box.w, box.h);
+    exportCtx.filter = 'none';
+    exportCtx.restore();
+
+    // Colored doodle stroke
+    exportCtx.save();
+    exportCtx.lineWidth = Math.max(3, Math.min(box.w, box.h) * 0.02);
+    const pal = ['#a7cbfb', '#f5cbf8', '#ffdfb8'];
+    exportCtx.strokeStyle = pal[i % pal.length];
+    roundedRectPath(exportCtx, box.x - 2, box.y - 2, box.w + 4, box.h + 4, Math.round(Math.min(box.w, box.h) * 0.04));
+    exportCtx.stroke();
+    exportCtx.restore();
+  });
+
+  // Export
+  const mime = (format === 'jpg' || format === 'jpeg') ? 'image/jpeg' : 'image/png';
+  const data = exportCanvas.toDataURL(mime, format === 'jpg' ? 0.92 : 1.0);
+  const a = document.createElement('a');
+  a.href = data;
+  a.download = `collage-${w}x${h}.${format === 'jpg' ? 'jpg' : 'png'}`;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* small polyfill for older browsers for roundedRect usage */
+if(!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
+    roundedRectPath(this,x,y,w,h,r);
+    this.fill();
+  };
+}
+
+/* very small UI initialization */
+renderPreview();
+
+</script>
+</body>
+</html>
