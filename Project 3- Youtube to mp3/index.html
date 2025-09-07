@@ -30,8 +30,11 @@
       status.textContent = "⏳ Processing... Please wait.";
 
       try {
+        
+        //------------------------------------------------------------------------------------------------------------
         // CHANGE THIS to your Render/Heroku backend URL
-        const backendUrl = "https://your-backend.onrender.com/download";
+        const backendUrl = "https://yt2mp3-8diu.onrender.com";   // CHANGE THIS to your Render/Heroku backend URL
+        //------------------------------------------------------------------------------------------------------------
 
         const response = await fetch(backendUrl, {
           method: "POST",
@@ -58,3 +61,5 @@
   </script>
 </body>
 </html>
+
+
